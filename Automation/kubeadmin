@@ -1,0 +1,15 @@
+#!/bin/bash
+
+total_ram () {
+  local totalram=$(sudo cat /proc/meminfo | grep -i 'memtotal' | grep -o '[[:digit:]]*')
+  echo $totalram
+}
+
+nCpu=$(sudo nproc)
+rSize=$(total_ram)
+
+if [ $nCpu -lt 2 ] || [ $rSize -lt 4000000 ]; then
+#   sudo kubeadm init --pod-network-cidr=10.30.0.0/16 --ignore-preflight-errors=NumCPU,Mem --v=5 --apiserver-advertise-address=$1
+#   kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+  exit 0
+fi

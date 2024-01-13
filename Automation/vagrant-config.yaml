@@ -1,0 +1,12 @@
+---
+configs:
+  use: 'min'
+  min:
+    internetInterface: nomeDaInterface
+    boxRam: 1024
+    boxCpu: 1
+
+  rec:
+    internetInterface: nomeDaInterface
+    boxRam: 2048
+    boxCpu: 2

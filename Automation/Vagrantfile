@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.require_version ">= 1.8.0"
+require 'yaml'
+current_dir    = File.dirname(File.expand_path(__FILE__))
+configs        = YAML.load_file("#{current_dir}/vagrant-config.yaml")
+vagrant_config = configs['configs'][configs['configs']['use']]
+N=2
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+
+    (1..N).each do |i|
+        if i == 1
+            config.vm.define "k8s-control-plane" do |node|
+                  node.vm.box = "hashicorp/bionic64"
+                  node.vm.box_version = "1.0.282"
+                  node.vm.hostname = "control-plane"
+                  node.vm.network "public_network", bridge: vagrant_config['internetInterface']
+                  # node.vm.network "private_network", ip: "192.168.56.50"
+
+
+                  node.vm.provider "virtualbox" do |vb|
+                    vb.memory = vagrant_config['boxRam']
+                    vb.cpus = vagrant_config['boxCpu']
+                    vb.name = "k8s-control-plane"
+                  end
+
+            end
+        else
+            config.vm.define "worker-node-#{i-1}" do |node|
+              node.vm.box = "hashicorp/bionic64"
+              node.vm.box_version = "1.0.282"
+              node.vm.hostname = "node-#{i-1}"
+              node.vm.network "public_network", bridge: vagrant_config['internetInterface']
+              # node.vm.network "private_network", ip: "192.168.56.#{50+i-1}"
+
+              node.vm.provider "virtualbox" do |vb|
+                vb.memory = vagrant_config['boxRam']
+                vb.cpus = vagrant_config['boxCpu']
+                vb.name = "k8s-worker-node-#{i-1}"
+              end
+              if i == N
+                  node.vm.provision :ansible do |ansible|
+                          ansible.verbose = "v"
+                          ansible.limit = "all"
+                          ansible.playbook = "ansible-playbook.yaml"
+                  end
+              end
+            end
+        end
+    end
+end
